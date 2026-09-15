@@ -1,0 +1,372 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-buy: var(--buy);
+  --color-hold: var(--hold);
+  --color-skip: var(--skip);
+}
+
+:root {
+  color-scheme: dark;
+  --radius: 0.25rem;
+  --background: oklch(0.136 0.016 269.4);
+  --foreground: oklch(0.905 0.024 264.5);
+  --card: oklch(0.189 0.028 267.6);
+  --card-foreground: oklch(0.905 0.024 264.5);
+  --popover: oklch(0.189 0.028 267.6);
+  --popover-foreground: oklch(0.905 0.024 264.5);
+  --primary: oklch(0.612 0.199 259);
+  --primary-foreground: oklch(0.98 0.01 264);
+  --secondary: oklch(0.221 0.032 267.6);
+  --secondary-foreground: oklch(0.905 0.024 264.5);
+  --muted: oklch(0.221 0.032 267.6);
+  --muted-foreground: oklch(0.508 0.045 267.5);
+  --accent: oklch(0.612 0.199 259);
+  --accent-foreground: oklch(0.98 0.01 264);
+  --destructive: oklch(0.65 0.204 24.8);
+  --destructive-foreground: oklch(0.98 0.01 264);
+  --border: oklch(0.277 0.048 268.1);
+  --input: oklch(0.277 0.048 268.1);
+  --ring: oklch(0.612 0.199 259);
+  --buy: oklch(0.756 0.18 154.5);
+  --hold: oklch(0.784 0.159 73);
+  --skip: oklch(0.65 0.204 24.8);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --background: oklch(0.975 0.008 258);
+  --foreground: oklch(0.23 0.025 263);
+  --card: oklch(0.995 0.004 258);
+  --card-foreground: oklch(0.23 0.025 263);
+  --popover: oklch(0.995 0.004 258);
+  --popover-foreground: oklch(0.23 0.025 263);
+  --primary: oklch(0.56 0.192 259);
+  --primary-foreground: oklch(0.99 0.004 258);
+  --secondary: oklch(0.935 0.015 257);
+  --secondary-foreground: oklch(0.23 0.025 263);
+  --muted: oklch(0.935 0.015 257);
+  --muted-foreground: oklch(0.47 0.035 263);
+  --accent: oklch(0.91 0.045 255);
+  --accent-foreground: oklch(0.23 0.025 263);
+  --destructive: oklch(0.57 0.21 25);
+  --destructive-foreground: oklch(0.99 0.004 258);
+  --border: oklch(0.84 0.022 258);
+  --input: oklch(0.76 0.029 258);
+  --ring: oklch(0.56 0.192 259);
+  --buy: oklch(0.57 0.16 154);
+  --hold: oklch(0.66 0.14 73);
+  --skip: oklch(0.57 0.21 25);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@utility data-grid {
+  display: grid;
+  gap: 1px;
+  background-color: var(--color-border);
+  border: 1px solid var(--color-border);
+}
+
+@utility pulse-dot {
+  position: relative;
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-primary);
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background-color: var(--color-primary);
+    animation: sb-pulse 1.6s ease-out infinite;
+  }
+}
+
+@keyframes sb-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+/* ── StockBrief motion + surface utilities ───────────────────────────── */
+
+@utility focus-ring {
+  &:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-background),
+      0 0 0 4px var(--color-primary);
+  }
+}
+
+@utility glass-header {
+  background-color: color-mix(in oklab, var(--color-background) 72%, transparent);
+  backdrop-filter: blur(12px) saturate(140%);
+}
+
+@utility glass-backdrop {
+  background-color: color-mix(in oklab, var(--color-background) 70%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+@utility grid-breathe {
+  animation: sb-breathe 5.5s ease-in-out infinite;
+}
+
+@utility brand-pulse {
+  animation: sb-brand 2s ease-in-out infinite;
+}
+
+@utility ticker-track {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: sb-marquee 42s linear infinite;
+}
+
+@utility shimmer-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-120%);
+    background: linear-gradient(
+      100deg,
+      transparent 20%,
+      color-mix(in oklab, white 45%, transparent) 50%,
+      transparent 80%
+    );
+  }
+  &:hover::after {
+    animation: sb-shimmer 900ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@utility skeleton-bar {
+  position: relative;
+  overflow: hidden;
+  background-color: color-mix(in oklab, var(--color-border) 70%, var(--color-card));
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      100deg,
+      transparent 20%,
+      color-mix(in oklab, var(--color-foreground) 12%, transparent) 50%,
+      transparent 80%
+    );
+    animation: sb-shimmer 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+}
+
+@utility briefing-accent {
+  border-left: 2px solid var(--color-primary);
+  box-shadow: inset 2px 0 8px color-mix(in oklab, var(--color-primary) 30%, transparent);
+}
+
+@utility live-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background-color: var(--color-buy);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--color-buy) 70%, transparent);
+  animation: sb-brand 2s ease-in-out infinite;
+}
+
+@utility input-hero {
+  transition:
+    box-shadow 200ms ease-in-out,
+    border-color 200ms ease-in-out;
+  &:focus {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-primary),
+      0 0 20px color-mix(in oklab, var(--color-primary) 25%, transparent);
+  }
+}
+
+@utility flash-up {
+  animation: sb-flash-up 1s ease-in-out 1;
+}
+
+@utility flash-down {
+  animation: sb-flash-down 1s ease-in-out 1;
+}
+
+@utility press-3d {
+  transition:
+    transform 140ms ease-in-out,
+    box-shadow 180ms ease-in-out,
+    background-color 180ms ease-in-out;
+  &:active {
+    transform: translateY(2px);
+  }
+}
+
+@utility spinner-arc {
+  animation: sb-spin 1.1s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+  transform-origin: center;
+}
+
+@utility caret-blink {
+  animation: sb-caret 1s steps(2, start) infinite;
+}
+
+@keyframes sb-breathe {
+  0%,
+  100% {
+    opacity: 0.06;
+  }
+  50% {
+    opacity: 0.1;
+  }
+}
+
+@keyframes sb-brand {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes sb-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes sb-shimmer {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes sb-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sb-flash-up {
+  0% {
+    text-shadow: 0 0 14px color-mix(in oklab, var(--color-buy) 80%, transparent);
+  }
+  100% {
+    text-shadow: none;
+  }
+}
+
+@keyframes sb-flash-down {
+  0% {
+    text-shadow: 0 0 14px color-mix(in oklab, var(--color-skip) 80%, transparent);
+  }
+  100% {
+    text-shadow: none;
+  }
+}
+
+@keyframes sb-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes sb-ripple {
+  from {
+    transform: scale(0);
+    opacity: 0.45;
+  }
+  to {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+@utility ripple-ink {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border-radius: 9999px;
+  background-color: currentColor;
+  pointer-events: none;
+  animation: sb-ripple 600ms ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
