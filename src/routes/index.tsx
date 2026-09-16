@@ -6,6 +6,7 @@ import { TickerTape } from "@/components/TickerTape";
 import { Spinner } from "@/components/Spinner";
 import { MarketSkeleton, MarketStrip } from "@/components/MarketStrip";
 import { BriefingPanel } from "@/components/BriefingPanel";
+import { BitgetSignalPanel } from "@/components/BitgetSignalPanel";
 import { ConfidencePanel } from "@/components/ConfidencePanel";
 import { DecisionJournal, type JournalEntry } from "@/components/DecisionJournal";
 import { QuoteContext } from "@/components/QuoteContext";
@@ -137,7 +138,7 @@ function StockBrief() {
       }
 
       // Generate enriched AI briefing
-      setBriefing(await fetchBriefing(sym, data.market, ind));
+      setBriefing(await fetchBriefing(sym, data.market, ind, data.signal));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
@@ -153,6 +154,7 @@ function StockBrief() {
         market.symbol,
         market,
         indicators ?? undefined,
+        bundle.signal,
         chatHistory,
         message,
       );
@@ -320,7 +322,7 @@ function StockBrief() {
               <div className="flex flex-col items-center gap-1.5">
                 <span className="font-mono text-xs text-foreground">{phase}</span>
                 <span className="font-mono text-[10px] text-muted-foreground/50">
-                  Pulling from 4 Bitget data sources
+                  Pulling from 5 Bitget data sources
                 </span>
               </div>
             </motion.div>
@@ -339,6 +341,8 @@ function StockBrief() {
             />
 
             {confidence && <ConfidencePanel confidence={confidence} />}
+
+            {bundle?.signal && <BitgetSignalPanel signal={bundle.signal} />}
 
             {/* Data source badges */}
             {dataSources.length > 0 && <DataSourceBadges sources={dataSources} />}
@@ -425,7 +429,7 @@ function StockBrief() {
             Stock Bersek — AI Trading Desk
           </span>
           <span className="font-mono text-[10px] text-muted-foreground/50">
-            Bitget Builder OS · Hackathon Season 2 · 4 data sources · Gemini AI · Not investment
+            Bitget Builder OS · Hackathon Season 2 · 5 data sources · Gemini AI · Not investment
             advice
           </span>
         </div>

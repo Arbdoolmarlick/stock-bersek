@@ -16,7 +16,7 @@ export function computeDataConfidence(
   const unavailable = bundle.sources.filter((source) => source.status === "unavailable");
   const age = Number(bundle.market.ts);
   const ageSeconds = Number.isFinite(age) ? Math.max(0, Math.round((now - age) / 1000)) : null;
-  let score = 40 + (4 - unavailable.length) * 10;
+  let score = 40 + (bundle.sources.length - unavailable.length) * 10;
 
   if (bundle.klines.length >= 20) score += 12;
   if (indicators?.book) score += 10;

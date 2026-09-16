@@ -40,16 +40,24 @@ export type RecentTrade = {
   ts: string;
 };
 
+export type ResearchSignal = {
+  provider: "Bitget Signal";
+  value: number | null;
+  classification: string;
+  summary?: string;
+};
+
 export type AnalysisBundle = {
   market: MarketData;
   klines: KlineBar[];
   book: OrderBookData;
   trades: RecentTrade[];
+  signal: ResearchSignal | null;
   sources: DataSourceStatus[];
 };
 
 export type DataSourceStatus = {
-  label: "Market Tickers" | "Price History" | "Order Book" | "Trade Flow";
+  label: "Market Tickers" | "Price History" | "Order Book" | "Trade Flow" | "Bitget Signal";
   status: "available" | "unavailable";
   detail?: string;
 };
@@ -196,9 +204,31 @@ export async function fetchRecentTrades(symbol: string, limit = 100): Promise<Re
   );
 }
 
+async function fetchResearchSignal(): Promise<ResearchSignal> {
+  const res = await fetch("/api/signal?resource=sentiment");
+  const json = (await res.json().catch(() => null)) as {
+    provider?: "Bitget Signal";
+    value?: unknown;
+    classification?: unknown;
+    summary?: unknown;
+    error?: string;
+  } | null;
+  if (!res.ok || json?.provider !== "Bitget Signal" || typeof json.classification !== "string") {
+    throw new Error(json?.error ?? "Bitget Signal sentiment data is unavailable.");
+  }
+  const value = Number(json.value);
+  const summary = typeof json.summary === "string" ? json.summary : undefined;
+  return {
+    provider: "Bitget Signal",
+    value: Number.isFinite(value) ? value : null,
+    classification: json.classification,
+    ...(summary === undefined ? {} : { summary }),
+  };
+}
+
 /** Fetch all data sources in parallel for a full analysis. */
 export async function fetchAnalysisBundle(symbol: string): Promise<AnalysisBundle> {
-  const [market, klinesResult, bookResult, tradesResult] = await Promise.all([
+  const [market, klinesResult, bookResult, tradesResult, signalResult] = await Promise.all([
     fetchTicker(symbol),
     fetchKlines(symbol).then(
       (value) => ({ value, error: null as string | null }),
@@ -215,17 +245,23 @@ export async function fetchAnalysisBundle(symbol: string): Promise<AnalysisBundl
       (value) => ({ value, error: null as string | null }),
       (error: unknown) => ({ value: [] as RecentTrade[], error: errorMessage(error) }),
     ),
+    fetchResearchSignal().then(
+      (value) => ({ value, error: null as string | null }),
+      (error: unknown) => ({ value: null as ResearchSignal | null, error: errorMessage(error) }),
+    ),
   ]);
   return {
     market,
     klines: klinesResult.value,
     book: bookResult.value,
     trades: tradesResult.value,
+    signal: signalResult.value,
     sources: [
       { label: "Market Tickers", status: "available" },
       sourceStatus("Price History", klinesResult.error),
       sourceStatus("Order Book", bookResult.error),
       sourceStatus("Trade Flow", tradesResult.error),
+      sourceStatus("Bitget Signal", signalResult.error),
     ],
   };
 }
@@ -245,7 +281,12 @@ function fmtNum(n: number | null, digits = 2): string {
   return n.toFixed(digits);
 }
 
-export function buildPrompt(symbol: string, data: MarketData, indicators?: IndicatorBundle) {
+export function buildPrompt(
+  symbol: string,
+  data: MarketData,
+  indicators?: IndicatorBundle,
+  signal?: ResearchSignal | null,
+) {
   const base = `You are a concise AI trading analyst on an AI Trading Desk.
 A human trader is looking at ${symbol} and wants a quick briefing before deciding to act.
 
@@ -292,6 +333,10 @@ RECENT TRADE FLOW (last 100 trades):
 PRICE LEVELS (48h range):
 - Support: ${levels ? fmtNum(levels.support, 4) : "N/A"} | Resistance: ${levels ? fmtNum(levels.resistance, 4) : "N/A"}
 
+BITGET SIGNAL MARKET CONTEXT:
+- Crypto market mood: ${signal ? `${signal.classification}${signal.value === null ? "" : ` (${signal.value}/100)`}` : "unavailable"}
+- This is broad crypto context only. Do not treat it as a signal for the rToken or its underlying share price.
+
 Give a structured briefing in exactly this format — keep each section to 1–2 sentences:
 TREND: [price action + SMA/momentum context]
 SIGNALS: [key signals from indicators, order flow, volume]
@@ -310,9 +355,10 @@ export async function fetchBriefing(
   symbol: string,
   data: MarketData,
   indicators?: IndicatorBundle,
+  signal?: ResearchSignal | null,
 ): Promise<string> {
   return requestAi({
-    prompt: buildPrompt(symbol, data, indicators),
+    prompt: buildPrompt(symbol, data, indicators, signal),
     maxOutputTokens: 600,
     temperature: 0.3,
   });
@@ -323,10 +369,11 @@ export async function fetchChatReply(
   symbol: string,
   data: MarketData,
   indicators: IndicatorBundle | undefined,
+  signal: ResearchSignal | null,
   history: ChatMessage[],
   userMessage: string,
 ): Promise<string> {
-  const systemContext = buildPrompt(symbol, data, indicators);
+  const systemContext = buildPrompt(symbol, data, indicators, signal);
 
   const contents = [
     { role: "user", parts: [{ text: systemContext }] },

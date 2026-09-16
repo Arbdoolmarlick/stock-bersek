@@ -62,6 +62,9 @@ export default {
       if (new URL(request.url).pathname === "/api/market") {
         return await handleMarketRequest(request);
       }
+      if (new URL(request.url).pathname === "/api/signal") {
+        return await handleSignalRequest(request);
+      }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
@@ -159,6 +162,141 @@ async function handleMarketRequest(request: Request): Promise<Response> {
   } catch {
     return json({ error: "Unable to reach Bitget market data. Please try again shortly." }, 502);
   }
+}
+
+const BITGET_SIGNAL_MCP_URL = "https://datahub.noxiaohao.com/mcp";
+
+async function handleSignalRequest(request: Request): Promise<Response> {
+  if (request.method !== "GET") return json({ error: "Method not allowed." }, 405);
+  if (new URL(request.url).searchParams.get("resource") !== "sentiment") {
+    return json({ error: "Unknown Signal resource." }, 400);
+  }
+
+  try {
+    const initialized = await mcpRequest({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "stock-bersek", version: "1.0.0" },
+      },
+    });
+    const sessionId = initialized.headers.get("mcp-session-id");
+    if (!sessionId) throw new Error("Bitget Signal did not provide a session.");
+
+    await mcpRequest({ jsonrpc: "2.0", method: "notifications/initialized" }, sessionId, 4_000);
+    const response = await mcpRequest(
+      {
+        jsonrpc: "2.0",
+        id: 2,
+        method: "tools/call",
+        params: { name: "sentiment_index", arguments: { action: "current" } },
+      },
+      sessionId,
+      4_000,
+    );
+    const result = parseMcpEvent(await response.text());
+    const content = result?.result?.content?.find(
+      (item: { type?: unknown }) => item.type === "text",
+    ) as { text?: unknown } | undefined;
+    if (result?.result?.isError || typeof content?.text !== "string") {
+      throw new Error("Bitget Signal sentiment data is unavailable.");
+    }
+
+    return json({ provider: "Bitget Signal", ...extractSentiment(content.text) });
+  } catch {
+    return json({ error: "Bitget Signal sentiment data is temporarily unavailable." }, 502);
+  }
+}
+
+async function mcpRequest(
+  payload: unknown,
+  sessionId?: string,
+  timeout = 6_000,
+): Promise<Response> {
+  const headers: Record<string, string> = {
+    accept: "application/json, text/event-stream",
+    "content-type": "application/json",
+  };
+  if (sessionId) headers["mcp-session-id"] = sessionId;
+  return fetch(BITGET_SIGNAL_MCP_URL, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(timeout),
+  });
+}
+
+function parseMcpEvent(
+  body: string,
+): { result?: { content?: Array<{ type?: string; text?: string }>; isError?: boolean } } | null {
+  const data = body
+    .split("\n")
+    .find((line) => line.startsWith("data: "))
+    ?.slice(6);
+  if (!data) return null;
+  try {
+    return JSON.parse(data) as {
+      result?: { content?: Array<{ type?: string; text?: string }>; isError?: boolean };
+    };
+  } catch {
+    return null;
+  }
+}
+
+function extractSentiment(text: string) {
+  try {
+    const parsed = JSON.parse(text) as Record<string, unknown>;
+    const value = firstNumber(parsed, ["value", "score", "data.value"]);
+    const classification = firstString(parsed, [
+      "classification",
+      "value_classification",
+      "label",
+      "status",
+    ]);
+    return {
+      value,
+      classification: classification ?? "Market mood available",
+      summary: typeof parsed["timestamp"] === "string" ? parsed["timestamp"] : undefined,
+    };
+  } catch {
+    return { value: null, classification: "Market mood available", summary: text.slice(0, 160) };
+  }
+}
+
+function firstNumber(source: Record<string, unknown>, paths: string[]) {
+  for (const path of paths) {
+    const value = path
+      .split(".")
+      .reduce<unknown>(
+        (current, key) =>
+          current && typeof current === "object"
+            ? (current as Record<string, unknown>)[key]
+            : undefined,
+        source,
+      );
+    const number = Number(value);
+    if (Number.isFinite(number)) return number;
+  }
+  return null;
+}
+
+function firstString(source: Record<string, unknown>, paths: string[]) {
+  for (const path of paths) {
+    const value = path
+      .split(".")
+      .reduce<unknown>(
+        (current, key) =>
+          current && typeof current === "object"
+            ? (current as Record<string, unknown>)[key]
+            : undefined,
+        source,
+      );
+    if (typeof value === "string" && value.trim()) return value;
+  }
+  return null;
 }
 
 function getGeminiKey(env: unknown): string | undefined {

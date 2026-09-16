@@ -21,6 +21,7 @@ Stock Bersek makes that context visible in one research flow. AI summarizes the 
    - candle history;
    - order-book depth;
    - recent fills / trade flow.
+   - Bitget Signal crypto market-mood context, via its public no-key MCP service.
 4. Calculate technical and microstructure context, including SMA, RSI, VWAP, spread, book imbalance, liquidity depth, and buy/sell flow.
 5. Send a compact, server-side prompt to Gemini for a plain-language research briefing.
 6. Let the trader record a Buy, Hold, or Skip intent, optionally add their rationale, and open the matching Bitget market page.
