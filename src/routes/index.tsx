@@ -212,8 +212,15 @@ function StockBrief() {
 
       {/* ── Header ────────────────────────────────────────────── */}
       <header className="glass-header sticky top-0 z-40 flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3.5">
-        <span className="font-mono text-base text-foreground">
-          <span className="brand-pulse inline-block text-primary">■</span> Stock Bersek
+        <span className="flex items-center gap-2 font-mono text-base text-foreground">
+          <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-sm bg-black">
+            <img
+              src="/stock-bersek-logo.jpg"
+              alt="Stock Bersek"
+              className="h-full w-full scale-[2.4] object-cover"
+            />
+          </span>
+          Stock Bersek
         </span>
         <div className="flex items-center gap-4">
           <span className="hidden text-xs text-muted-foreground sm:inline">
@@ -424,8 +431,14 @@ function StockBrief() {
       {/* ── Footer ────────────────────────────────────────────── */}
       <footer className="border-t border-border px-5 py-6 text-center">
         <div className="mx-auto flex max-w-4xl flex-col items-center gap-2">
-          <span className="font-mono text-xs text-foreground/70">
-            <span className="brand-pulse mr-1.5 inline-block text-primary">■</span>
+          <span className="flex items-center gap-2 font-mono text-xs text-foreground/70">
+            <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-sm bg-black">
+              <img
+                src="/stock-bersek-logo.jpg"
+                alt=""
+                className="h-full w-full scale-[2.4] object-cover"
+              />
+            </span>
             Stock Bersek — AI Trading Desk
           </span>
           <span className="font-mono text-[10px] text-muted-foreground/50">

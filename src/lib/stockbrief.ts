@@ -68,7 +68,7 @@ export const WATCHLIST_STORAGE = "stockbrief.watchlist";
 
 /* ── Bitget API helpers ───────────────────────────────────────────────── */
 
-function ensurePair(symbol: string) {
+export function toBitgetPair(symbol: string) {
   const normalized = symbol.trim().toUpperCase();
   if (normalized.startsWith("R") && normalized.endsWith("USDT")) return normalized;
   if (normalized.startsWith("R")) return `${normalized}USDT`;
@@ -87,7 +87,7 @@ async function bitgetFetch(resource: string, params: Record<string, string | num
 }
 
 export async function fetchTicker(symbol: string): Promise<MarketData> {
-  const pair = ensurePair(symbol);
+  const pair = toBitgetPair(symbol);
   const res = await bitgetFetch("tickers", { symbol: pair });
   const json = (await res.json()) as {
     code?: string;
@@ -130,7 +130,7 @@ export async function fetchKlines(
   interval = "1H",
   limit = 48,
 ): Promise<KlineBar[]> {
-  const pair = ensurePair(symbol);
+  const pair = toBitgetPair(symbol);
   const res = await bitgetFetch("candles", { symbol: pair, interval, limit });
   const json = (await res.json()) as { code?: string; msg?: string; data?: string[][] };
   if (json.code !== "00000" || !json.data) {
@@ -150,7 +150,7 @@ export async function fetchKlines(
 }
 
 export async function fetchOrderBook(symbol: string, limit = 20): Promise<OrderBookData> {
-  const pair = ensurePair(symbol);
+  const pair = toBitgetPair(symbol);
   const res = await bitgetFetch("orderbook", { symbol: pair, limit });
   const json = (await res.json()) as {
     code?: string;
@@ -172,7 +172,7 @@ export async function fetchOrderBook(symbol: string, limit = 20): Promise<OrderB
 }
 
 export async function fetchRecentTrades(symbol: string, limit = 100): Promise<RecentTrade[]> {
-  const pair = ensurePair(symbol);
+  const pair = toBitgetPair(symbol);
   const res = await bitgetFetch("fills", { symbol: pair, limit });
   const json = (await res.json()) as {
     code?: string;

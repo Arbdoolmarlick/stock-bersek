@@ -1,11 +1,6 @@
 import type { IndicatorBundle } from "@/lib/indicators";
+import { hasThinLiquidity, quoteFreshness } from "@/lib/market-quality";
 import { formatNumber, type MarketData } from "@/lib/stockbrief";
-
-function freshness(ageSeconds: number | null) {
-  if (ageSeconds === null) return "freshness unknown";
-  if (ageSeconds < 60) return `updated ${ageSeconds}s ago`;
-  return `updated ${Math.floor(ageSeconds / 60)}m ago`;
-}
 
 export function QuoteContext({
   market,
@@ -17,11 +12,11 @@ export function QuoteContext({
   ageSeconds: number | null;
 }) {
   const spread = indicators?.book?.spreadPct;
-  const turnover = Number(market.turnover24h);
-  const thinLiquidity =
-    !indicators?.book ||
-    (spread !== undefined && spread > 0.5) ||
-    (Number.isFinite(turnover) && turnover < 10_000);
+  const thinLiquidity = hasThinLiquidity({
+    hasOrderBook: Boolean(indicators?.book),
+    spreadPct: spread,
+    turnover24h: market.turnover24h,
+  });
   return (
     <section className="mt-4 border border-border bg-card px-4 py-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -33,7 +28,9 @@ export function QuoteContext({
             Bitget Reality token market quote — not the underlying exchange share price.
           </p>
         </div>
-        <span className="font-mono text-[10px] text-muted-foreground">{freshness(ageSeconds)}</span>
+        <span className="font-mono text-[10px] text-muted-foreground">
+          {quoteFreshness(ageSeconds)}
+        </span>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border pt-3 font-mono text-xs sm:grid-cols-4">
         <div>
