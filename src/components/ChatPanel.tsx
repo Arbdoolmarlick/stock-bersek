@@ -9,6 +9,12 @@ type ChatPanelProps = {
   disabled?: boolean;
 };
 
+const STARTER_QUESTIONS = [
+  "What's the biggest risk here?",
+  "Give me a bear case and a bull case.",
+  "What would invalidate this setup?",
+];
+
 export function ChatPanel({ onSend, disabled }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -20,8 +26,8 @@ export function ChatPanel({ onSend, disabled }: ChatPanelProps) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  async function handleSend() {
-    const text = input.trim();
+  async function handleSend(message = input) {
+    const text = message.trim();
     if (!text || loading || disabled) return;
 
     const userId = ++seq.current;
@@ -65,7 +71,7 @@ export function ChatPanel({ onSend, disabled }: ChatPanelProps) {
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
         <span className="font-mono text-xs text-muted-foreground">
-          Ask a follow-up · AI Trading Desk
+          Continue your research · AI Trading Desk
         </span>
       </div>
 
@@ -104,11 +110,25 @@ export function ChatPanel({ onSend, disabled }: ChatPanelProps) {
       ) : (
         <div className="px-5 py-3">
           <p className="font-mono text-xs text-muted-foreground">
-            Ask follow-up questions about the analysis, compare stocks, or dive deeper into the
-            data.
+            This is a continuing conversation: Gemini keeps the original market data and each
+            earlier message in context.
           </p>
         </div>
       )}
+
+      <div className="flex flex-wrap gap-2 border-t border-border px-5 py-3">
+        {STARTER_QUESTIONS.map((question) => (
+          <button
+            key={question}
+            type="button"
+            onClick={() => handleSend(question)}
+            disabled={isDisabled}
+            className="focus-ring border border-border px-2.5 py-1.5 text-left font-mono text-[10px] text-muted-foreground transition-colors hover:border-primary hover:text-foreground disabled:opacity-40"
+          >
+            {question}
+          </button>
+        ))}
+      </div>
 
       {/* Input area */}
       <div className="flex gap-2 border-t border-border px-5 py-3">
@@ -123,7 +143,7 @@ export function ChatPanel({ onSend, disabled }: ChatPanelProps) {
         />
         <button
           type="button"
-          onClick={handleSend}
+          onClick={() => handleSend()}
           disabled={isDisabled || !input.trim()}
           className="shimmer-btn press-3d focus-ring bg-primary px-4 py-2 font-mono text-xs text-primary-foreground disabled:opacity-40"
         >

@@ -13,7 +13,7 @@ export function BitgetSignalPanel({ signal }: { signal: ResearchSignal }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="font-mono text-xs text-muted-foreground">
-            Bitget Signal · crypto market mood
+            Bitget Signal · Agent Hub research source
           </p>
           <p className={`mt-1 font-mono text-sm ${tone(signal)}`}>
             {signal.classification}

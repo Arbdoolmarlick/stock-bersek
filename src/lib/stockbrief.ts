@@ -286,12 +286,16 @@ export function buildPrompt(
   data: MarketData,
   indicators?: IndicatorBundle,
   signal?: ResearchSignal | null,
+  researchQuestion?: string,
 ) {
+  const researchFocus = researchQuestion?.trim()
+    ? `\n\nTRADER'S RESEARCH QUESTION:\n${researchQuestion.trim()}\nAddress this question using the available evidence. If the data cannot answer it, say so plainly.`
+    : "";
   const base = `You are a concise AI trading analyst on an AI Trading Desk.
 A human trader is looking at ${symbol} and wants a quick briefing before deciding to act.
 
 MARKET SNAPSHOT:
-${JSON.stringify(data, null, 2)}`;
+${JSON.stringify(data, null, 2)}${researchFocus}`;
 
   if (!indicators) {
     return `${base}
@@ -356,9 +360,10 @@ export async function fetchBriefing(
   data: MarketData,
   indicators?: IndicatorBundle,
   signal?: ResearchSignal | null,
+  researchQuestion?: string,
 ): Promise<string> {
   return requestAi({
-    prompt: buildPrompt(symbol, data, indicators, signal),
+    prompt: buildPrompt(symbol, data, indicators, signal, researchQuestion),
     maxOutputTokens: 600,
     temperature: 0.3,
   });
@@ -370,10 +375,11 @@ export async function fetchChatReply(
   data: MarketData,
   indicators: IndicatorBundle | undefined,
   signal: ResearchSignal | null,
+  researchQuestion: string,
   history: ChatMessage[],
   userMessage: string,
 ): Promise<string> {
-  const systemContext = buildPrompt(symbol, data, indicators, signal);
+  const systemContext = buildPrompt(symbol, data, indicators, signal, researchQuestion);
 
   const contents = [
     { role: "user", parts: [{ text: systemContext }] },

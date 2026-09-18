@@ -69,6 +69,7 @@ const POPULAR = ["AAPL", "TSLA", "NVDA", "MSFT", "GOOGL", "AMZN"];
 
 function StockBrief() {
   const [ticker, setTicker] = useState("");
+  const [researchQuestion, setResearchQuestion] = useState("");
   const [theme, setTheme] = useState<Theme>("dark");
   const [aiConfigured, setAiConfigured] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
@@ -138,7 +139,7 @@ function StockBrief() {
       }
 
       // Generate enriched AI briefing
-      setBriefing(await fetchBriefing(sym, data.market, ind, data.signal));
+      setBriefing(await fetchBriefing(sym, data.market, ind, data.signal, researchQuestion));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
@@ -155,6 +156,7 @@ function StockBrief() {
         market,
         indicators ?? undefined,
         bundle.signal,
+        researchQuestion,
         chatHistory,
         message,
       );
@@ -264,15 +266,29 @@ function StockBrief() {
           </motion.div>
         )}
 
-        {/* Hero search area */}
-        <div className="flex flex-col gap-3 sm:flex-row">
+        {/* Research prompt */}
+        <label className="mb-2 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+          Research question{" "}
+          <span className="normal-case tracking-normal text-muted-foreground/60">(optional)</span>
+        </label>
+        <textarea
+          value={researchQuestion}
+          onChange={(event) => setResearchQuestion(event.target.value)}
+          placeholder="What do you want to understand? e.g. Is liquidity supporting this move?"
+          rows={2}
+          maxLength={500}
+          className="input-hero w-full resize-y border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground"
+        />
+
+        {/* Ticker search area */}
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row">
           <input
             value={ticker}
             onChange={(e) => setTicker(e.target.value.toUpperCase())}
             onKeyDown={(e) => {
               if (e.key === "Enter") analyze();
             }}
-            placeholder="Enter ticker symbol…"
+            placeholder="Enter ticker symbol, e.g. AAPL"
             aria-label="Ticker symbol"
             className="input-hero flex-1 border border-border bg-card px-5 py-4 font-mono text-[22px] tracking-wide text-foreground placeholder:text-muted-foreground"
           />
