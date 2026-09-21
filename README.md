@@ -1,65 +1,76 @@
 # Stock Bersek
 
-Stock Bersek is an AI-assisted research desk for Bitget Reality tokens (rTokens). It turns live Bitget market data into a concise, explainable research workflow so that a trader can investigate a tokenized U.S. stock market before making their own decision.
+**AI research workbench for Bitget Reality tokens (rTokens).** Stock Bersek helps self-directed traders investigate a tokenized U.S. stock market with live Bitget data, transparent market-quality checks, and a continuing Gemini research conversation. The trader always makes the final decision.
 
-Built for the Bitget AI Base Camp Hackathon S2, **AI Trading Desk** track.
+**Live demo:** [stock-bersek.vercel.app](https://stock-bersek.vercel.app/)
+**Hackathon track:** Bitget AI Base Camp S2 - AI Trading Desk -> Personalized Research Workbench
 
-> Educational market commentary only. Stock Bersek does not provide investment advice, execute trades, or make decisions for the user.
+> Educational market commentary only. Stock Bersek is not investment advice, does not guarantee outcomes, and never places or authorizes trades.
 
-## The problem
+## Why Stock Bersek
 
-Tokenized U.S. stocks can trade around the clock, but a price alone does not explain the market behind it. A trader needs to know whether the quote is fresh, how deep the order book is, whether recent trade flow supports the move, and what data may be missing before acting.
+rTokens trade around the clock, but last price alone is not enough to make sense of a market. A trader also needs to see quote freshness, order-book depth, spread, turnover, recent trade flow, technical context, and source failures before forming a view.
 
-Stock Bersek makes that context visible in one research flow. AI summarizes the available data; the human remains responsible for every trading decision.
+Stock Bersek turns that scattered context into one explainable workflow: **question -> market evidence -> AI research -> human decision -> review**.
 
-## What it does
+## What is built
 
-1. Enter an underlying ticker such as `AAPL`, `TSLA`, or `NVDA`.
-2. Convert it to Bitget's Reality-token pair format, for example `RAAPLUSDT`.
-3. Retrieve live public Bitget market data:
-   - ticker and 24-hour statistics;
-   - candle history;
-   - order-book depth;
-   - recent fills / trade flow.
-   - Bitget Signal crypto market-mood context, via its public no-key MCP service.
-4. Calculate technical and microstructure context, including SMA, RSI, VWAP, spread, book imbalance, liquidity depth, and buy/sell flow.
-5. Send a compact, server-side prompt to Gemini for a plain-language research briefing.
-6. Let the trader record a Buy, Hold, or Skip intent, optionally add their rationale, and open the matching Bitget market page.
-7. Keep a session journal with the decision snapshot and a later-outcome field for review.
+- **Natural-language research workflow** - enter a research question such as “Is liquidity supporting this move?” alongside a ticker.
+- **Bitget rToken mapping** - converts underlying symbols such as `AAPL` into Bitget Reality-token pairs such as `RAAPLUSDT`.
+- **Live market evidence** - retrieves public Bitget ticker data, candles, order-book levels, and recent fills.
+- **Bitget AI ecosystem context** - uses the official no-key Bitget Signal / Agent Hub public MCP source for broad crypto market-mood context when available.
+- **Explainable research** - computes SMA, RSI, VWAP, support/resistance, order-book imbalance, spread, depth, and buy/sell pressure before requesting an AI briefing.
+- **Source and liquidity transparency** - shows source-level availability, quote freshness, best bid/ask, turnover, thin-liquidity warnings, and a data-confidence score.
+- **Continuing AI conversation** - Gemini receives the original market context, research question, and earlier messages for every follow-up question.
+- **Decision support, not automated trading** - users can log Buy, Hold, or Skip intent with rationale and later outcome; Buy intent opens the matching Bitget market page in a new tab.
+- **Light and dark modes** - usable research interface for different environments.
 
-## Research safeguards
+## Complete research task
 
-- **Human in control:** AI analysis is informational; it does not place or authorize trades.
-- **No client-side Gemini key:** `GEMINI_API_KEY` is read only by the server.
-- **rToken clarity:** the UI labels the Bitget Reality-token quote separately from the underlying exchange share price.
-- **Data transparency:** source-level failures are shown rather than silently presented as complete data.
-- **Quote quality:** freshness, best bid/ask, spread, turnover, thin-liquidity warnings, and a data-confidence score help users judge the analysis context.
+Example question: **“Is liquidity supporting the current AAPL rToken move?”**
+
+1. Enter `AAPL` and the research question.
+2. Stock Bersek maps it to `RAAPLUSDT` and pulls the current Bitget market snapshot.
+3. Review the rToken quote, data freshness, order book, recent flow, technical indicators, liquidity warning, and data-confidence panel.
+4. Read the Gemini briefing, then continue with questions such as:
+   - “What is the biggest risk here?”
+   - “Give me a bear case and a bull case.”
+   - “What would invalidate this setup?”
+5. Record a Buy, Hold, or Skip intent and rationale in the session journal. The user may then choose to open Bitget independently.
+
+## AI role and safeguards
+
+Gemini acts as a research assistant. It translates the live market snapshot and calculated indicators into concise, plain-language commentary and answers follow-up questions using the same context.
+
+It does **not** decide for the user, execute trades, access a Bitget account, or claim that a Buy/Hold/Skip intent is a recommendation.
+
+- `GEMINI_API_KEY` stays server-side; the browser never receives it.
+- Bitget market data is public and does not require a Bitget API key.
+- rToken quotes are explicitly labeled as Bitget Reality-token market quotes, not the underlying exchange share price.
+- Partial data is disclosed through per-source status warnings rather than treated as a complete analysis.
 
 ## Architecture
 
 ```text
 Browser
-  └─ /api/market ──> Server-side proxy ──> Bitget public REST API
-  └─ /api/ai     ──> Server-side proxy ──> Gemini API
+  -> /api/market -> server-side proxy -> Bitget public market API
+  -> /api/signal -> server-side proxy -> Bitget Signal public MCP
+  -> /api/ai     -> server-side proxy -> Gemini API
 ```
-
-The browser never calls Gemini directly and never receives the Gemini API key. Bitget public market data does not require a Bitget API key.
 
 ## Technology
 
-- React 19 + TypeScript
-- TanStack Start / TanStack Router
-- Vite + Tailwind CSS
-- Framer Motion
-- Bitget public market API
-- Google Gemini API, via a server-side endpoint
+- React 19, TypeScript, TanStack Start, TanStack Router
+- Vite, Tailwind CSS, Framer Motion
+- Bitget public market API and Bitget Signal public MCP
+- Google Gemini API through a server-side endpoint
 
 ## Run locally
 
 ### Prerequisites
 
 - Node.js 20+ or Bun
-- A Gemini API key
+- Gemini API key
 
 ### Setup
 
@@ -67,19 +78,19 @@ The browser never calls Gemini directly and never receives the Gemini API key. B
 npm install
 ```
 
-Create a non-committed `.env.local` file:
+Create `.env.local` (it is ignored by Git):
 
 ```env
 GEMINI_API_KEY=your_key_here
 ```
 
-Then start the app:
+Start the development server:
 
 ```bash
 npm run dev
 ```
 
-Open the local URL printed by Vite. Restart the dev server after changing `.env.local`.
+Restart the server after changing environment variables.
 
 ## Verification
 
@@ -89,26 +100,14 @@ bunx tsc --noEmit
 npm run lint
 ```
 
-## Deployment
+The test suite covers technical indicators, rToken pair mapping, quote freshness, liquidity-warning rules, and data-confidence scoring.
 
-Deploy to a host that supports the TanStack Start/Nitro server routes. Configure `GEMINI_API_KEY` as a server-side environment variable on the host.
+## Deploy
 
-Never use `VITE_GEMINI_API_KEY`: `VITE_*` environment variables are exposed to the browser.
+Deploy to a host that supports TanStack Start/Nitro server routes. Configure `GEMINI_API_KEY` as a server-side environment variable in the deployment platform.
 
-## Hackathon demonstration flow
+Never use `VITE_GEMINI_API_KEY`; `VITE_*` variables are exposed to the browser.
 
-For a complete AI Trading Desk research task, demonstrate:
+## Hackathon submission notes
 
-1. Ask Stock Bersek to analyze a ticker.
-2. Review the current rToken quote, freshness, liquidity, and source status.
-3. Read the AI briefing and ask a follow-up question.
-4. Record a decision rationale and inspect the journal snapshot.
-5. Use the Bitget link only after the trader has independently chosen to act.
-
-## Project status
-
-Stock Bersek is a research workbench, not an automated trading agent. The strongest hackathon sub-theme fit is **AI Trading Desk → Personalized Research Workbench**.
-
-## License
-
-No license has been selected yet.
+For the AI Trading Desk submission, use the live demo above and select **AI Trading Desk -> Personalized Research Workbench**. The Google Form still needs its own project description, LLM-role explanation, submission-materials links, and required promotional X post.
