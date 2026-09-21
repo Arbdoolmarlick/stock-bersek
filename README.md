@@ -3,7 +3,6 @@
 **AI research workbench for Bitget Reality tokens (rTokens).** Stock Bersek helps self-directed traders investigate a tokenized U.S. stock market with live Bitget data, transparent market-quality checks, and a continuing Gemini research conversation. The trader always makes the final decision.
 
 **Live demo:** [stock-bersek.vercel.app](https://stock-bersek.vercel.app/)
-**Hackathon track:** Bitget AI Base Camp S2 - AI Trading Desk -> Personalized Research Workbench
 
 > Educational market commentary only. Stock Bersek is not investment advice, does not guarantee outcomes, and never places or authorizes trades.
 
@@ -107,7 +106,3 @@ The test suite covers technical indicators, rToken pair mapping, quote freshness
 Deploy to a host that supports TanStack Start/Nitro server routes. Configure `GEMINI_API_KEY` as a server-side environment variable in the deployment platform.
 
 Never use `VITE_GEMINI_API_KEY`; `VITE_*` variables are exposed to the browser.
-
-## Hackathon submission notes
-
-For the AI Trading Desk submission, use the live demo above and select **AI Trading Desk -> Personalized Research Workbench**. The Google Form still needs its own project description, LLM-role explanation, submission-materials links, and required promotional X post.
